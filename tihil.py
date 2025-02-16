@@ -1,10 +1,8 @@
 import streamlit as st
-import requests
 import os
 from groq import Groq
 from dotenv import load_dotenv
 import pandas as pd
-
 import requests
 
 
@@ -12,7 +10,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 
-API_KEY = "0d4158ffca710a27cae0b0cb2612ada8c17555b5de50123589ecf6e20c7876de"
+API_KEY = os.getenv("API_KEY")
 
 def fetch_shopping_results(prod):
     url = "https://serpapi.com/search"
@@ -41,7 +39,6 @@ def call_deepseek_api(response: str, country: str) -> str:
     
     # Create a prompt for DeepSeek
     prompt = f"What is the Average Selling Price (ASP) for the item with HSN code {response} in {country}? Provide the ASP in rupees. Ensure that the ASP remains the same for repeated queries with the same HSN code and country. Do not introduce variability—return the consistent value from a reliable source or database. Only provide the price without additional explanations or formatting changes."  
-    # api_key="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"
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
         model="llama-3.3-70b-versatile",
@@ -54,7 +51,7 @@ def api1(response: str, country: str) -> str:
     # Create a prompt for DeepSeek
     prompt = f"What is the Average Selling Price (ASP) for the item with HSN code {response} in {country}? Provide the ASP in rupees. Ensure that the ASP remains the same for repeated queries with the same HSN code and country. Do not introduce variability—return the consistent value from a reliable source or database. Only provide the price without additional explanations or formatting changes."
     
-    # api_key="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"
+    
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
         model="mixtral-8x7b-32768",
@@ -67,7 +64,6 @@ def api2(response: str, country: str) -> str:
     # Create a prompt for DeepSeek
     prompt = f"What is the Average Selling Price (ASP) for the item with HSN code  {response} in {country}? Provide the ASP in rupees.only provide the price dont give the text only price in rupees, do not change the response at refreshing for same params give the proper value"
     
-    # api_key="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"
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
         model="deepseek-r1-distill-qwen-32b",
@@ -130,10 +126,10 @@ if st.button("Get ASP"):
             # st.success(f"ASP for HSN Code through llama  {hsn_code} in {country}: {asp_response}")
             asp_response2 = api1(hsn_code, country)
             summary.append("mistral-8x7b "+asp_response2)
-            # st.success(f"ASP for HSN Code through gemma  {hsn_code} in {country}: {asp_response2}")
+            
             asp_response3 = api2(hsn_code, country)
             summary.append("deepseek-r1 "+asp_response3)
-            # st.success(f"ASP for HSN Code through deepseek  {hsn_code} in {country}: {asp_response3}")
+            
 
             
 
@@ -151,7 +147,7 @@ if st.button("Get ASP"):
             )
             response = chat_completion.choices[0].message.content
             summary.append("serpapi "+response)
-            # st.success(f"ASP for HSN Code through serpapi  {hsn_code} in {country}: {response}")
+            
 
             resp=generalize(summary)
             st.session_state.chat_history.append({"user": hsn_code ,"country":country, "bot": resp})
